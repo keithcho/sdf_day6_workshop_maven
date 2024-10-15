@@ -37,10 +37,21 @@ public class Client {
                 dos.flush();
 
                 String serverResponse = dis.readUTF();
-                System.out.println(serverResponse);
+                if (serverResponse.contains("cookie-text")) {
+                    String[] responseArr = serverResponse.split(":");
+                    if (responseArr.length > 1) {
+                        System.out.println("Cookie from the server: " + responseArr[1]);
+                    } else {
+                        System.err.println("Invalid cookie format received from server.");
+                    }
+                } else {
+                    System.err.println(serverResponse);
+                }
             }
+        } catch (IOException e) {
+            System.err.println("Connection Error: " + e.getMessage());
         } catch (Exception e) {
-            
+            System.err.println("Error: " + e.getMessage());
         }
     }
 }

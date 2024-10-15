@@ -31,10 +31,10 @@ public class Server {
                     System.out.println(">>> Client message: " + message);
 
                     if (message.equals("exit")) {
-                        break;
+                        System.exit(0);
                     } else if (message.equals("get-cookie")) {
                         String randomCookie = getRandomCookie();
-                        dos.writeUTF("cookie_text: " + randomCookie);
+                        dos.writeUTF("cookie-text:" + randomCookie);
                         System.out.println(">>> Sent cookie response to client");
                     } else {
                         dos.writeUTF(">>> Invalid command");

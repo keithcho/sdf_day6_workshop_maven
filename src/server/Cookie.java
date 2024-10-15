@@ -12,7 +12,7 @@ public class Cookie {
 
     public static String getRandomCookie() {
         String randomCookie = "";
-        if (cookies.size() > 0) {
+        if (!cookies.isEmpty()) {
             Random rand = new Random();
             int randomIndex = rand.nextInt(cookies.size());
             randomCookie = cookies.get(randomIndex);
