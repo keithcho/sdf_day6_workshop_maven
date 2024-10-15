@@ -2,6 +2,8 @@ package server;
 
 import java.io.*;
 import java.net.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import static server.Cookie.getRandomCookie;
 
 public class Server {
@@ -14,6 +16,7 @@ public class Server {
         System.out.println(">>> Server started");
         String serverPort = args[0];
         String cookieFile = args[1];
+        ExecutorService threadPool = Executors.newFixedThreadPool(5);
         
         try (ServerSocket server = new ServerSocket(Integer.parseInt(serverPort))) {
             System.out.println(">>> Server listening on port " + serverPort);
@@ -21,27 +24,45 @@ public class Server {
             while (true) { 
                 Socket socket = server.accept();
                 System.out.println(">>> Client connected");
-                InputStream is = socket.getInputStream();
-                DataInputStream dis = new DataInputStream(is);
-                OutputStream os = socket.getOutputStream();
-                DataOutputStream dos = new DataOutputStream(os);
-
-                while (true) { 
-                    String message = dis.readUTF();
-                    System.out.println(">>> Client message: " + message);
-
-                    if (message.equals("exit")) {
-                        System.exit(0);
-                    } else if (message.equals("get-cookie")) {
-                        String randomCookie = getRandomCookie();
-                        dos.writeUTF("cookie-text:" + randomCookie);
-                        System.out.println(">>> Sent cookie response to client");
-                    } else {
-                        dos.writeUTF(">>> Invalid command");
-                    }
-                }
+                
+                ClientHandler worker = new ClientHandler(socket);
+                threadPool.submit(worker);
             }
         } catch (Exception e) {
+        }
+    }
+}
+
+class ClientHandler implements Runnable {
+    private final Socket socket;
+
+    public ClientHandler(Socket socket) {
+        this.socket = socket;
+    }
+
+    @Override
+    public void run() {
+        try (InputStream is = socket.getInputStream();
+            DataInputStream dis = new DataInputStream(is);
+            OutputStream os = socket.getOutputStream();
+            DataOutputStream dos = new DataOutputStream(os);) {
+        
+            while (true) { 
+                String message = dis.readUTF();
+                System.out.println(">>> Client message: " + message);
+
+                if (message.equals("exit")) {
+                    System.exit(0);
+                } else if (message.equals("get-cookie")) {
+                    String randomCookie = getRandomCookie();
+                    dos.writeUTF("cookie-text:" + randomCookie);
+                    System.out.println(">>> Sent cookie response to client");
+                } else {
+                    dos.writeUTF(">>> Invalid command");
+                }
+            }
+        } catch (IOException e) {
+
         }
     }
 }
